@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Woodworking Costing Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logoMark"></div>
+      <div>
+        <div class="brandTitle">Woodworking Costing Dashboard</div>
+        <div class="brandSub">v2 • warm wood theme • single-page</div>
+      </div>
+    </div>
+
+    <div class="topActions">
+      <div class="projectPicker">
+        <label class="labelSm" for="projectSelect">Project</label>
+        <select id="projectSelect"></select>
+      </div>
+
+      <button class="btn" id="btnNew">New</button>
+      <button class="btn" id="btnDuplicate">Duplicate</button>
+      <button class="btn danger" id="btnDelete">Delete</button>
+      <button class="btn primary" id="btnPrint">Print BOQ</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- KPI Cards -->
+    <section class="kpis" id="kpis">
+      <div class="card kpi">
+        <div class="kpiLabel">Direct Cost</div>
+        <div class="kpiValue" id="kpiDirect">₱ 0.00</div>
+        <div class="kpiHint">Materials + Accessories + Utilities + Labor</div>
+      </div>
+
+      <div class="card kpi">
+        <div class="kpiLabel">Overhead Allocation</div>
+        <div class="kpiValue" id="kpiOverhead">₱ 0.00</div>
+        <div class="kpiHint">Monthly overhead → hourly rate → project hours</div>
+      </div>
+
+      <div class="card kpi">
+        <div class="kpiLabel">Logistics</div>
+        <div class="kpiValue" id="kpiLogistics">₱ 0.00</div>
+        <div class="kpiHint">Distance + toll + helper etc.</div>
+      </div>
+
+      <div class="card kpi">
+        <div class="kpiLabel">Contractor Share</div>
+        <div class="kpiValue" id="kpiContractor">₱ 0.00</div>
+        <div class="kpiHint">Percent or fixed amount</div>
+      </div>
+
+      <div class="card kpi">
+        <div class="kpiLabel">Contingency</div>
+        <div class="kpiValue" id="kpiContingency">₱ 0.00</div>
+        <div class="kpiHint">Buffer %</div>
+      </div>
+
+      <div class="card kpi kpiBig">
+        <div class="kpiLabel">Final Selling Price</div>
+        <div class="kpiValue" id="kpiFinal">₱ 0.00</div>
+        <div class="kpiHint">Markup applied after contractor share</div>
+      </div>
+
+      <div class="card kpi">
+        <div class="kpiLabel">Net Margin</div>
+        <div class="kpiValue" id="kpiMargin">0%</div>
+        <div class="kpiHint">Profit / Final</div>
+      </div>
+
+      <div class="card kpi" id="kpiHealthCard">
+        <div class="kpiLabel">Margin Health</div>
+        <div class="kpiValue" id="kpiHealth">—</div>
+        <div class="kpiHint">🟢 >30% • 🟡 20–30% • 🔴 <20%</div>
+      </div>
+    </section>
+
+    <!-- Content -->
+    <section class="content">
+      <!-- Left: Spreadsheet -->
+      <section class="card sheet">
+        <div class="sheetHeader">
+          <div>
+            <div class="sheetTitle">Costing Sheet</div>
+            <div class="sheetSub">Spreadsheet-style rows. Waste applies to Qty as: Qty × (1 + Waste%).</div>
+          </div>
+
+          <div class="sheetControls">
+            <select id="filterCategory" class="select">
+              <option value="ALL">All Categories</option>
+              <option value="Materials">Materials</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Labor">Labor (unit mode rows only)</option>
+            </select>
+
+            <button class="btn" id="btnAddRow">+ Add Row</button>
+            <button class="btn" id="btnAddFromLibrary">+ From Library</button>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table class="grid" id="rowsTable">
+            <thead>
+              <tr>
+                <th class="colUse">Use</th>
+                <th class="colCat">Category</th>
+                <th class="colItem">Item</th>
+                <th class="colUnit">Unit</th>
+                <th class="colCost">Unit Cost</th>
+                <th class="colQty">Qty</th>
+                <th class="colWaste">Waste %</th>
+                <th class="colSub right">Subtotal</th>
+                <th class="colActions"> </th>
+              </tr>
+            </thead>
+            <tbody id="rowsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="sheetFooter">
+          <div class="muted">
+            Tip: On mobile, swipe horizontally on the table.
+          </div>
+          <div class="inlineStats">
+            <span class="pill">Rows: <strong id="statRows">0</strong></span>
+            <span class="pill">Active: <strong id="statActive">0</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Controls Panel -->
+      <aside class="card panel" id="panel">
+        <div class="panelHeader">
+          <div class="panelTitle">Project Controls</div>
+          <button class="btn ghost" id="btnTogglePanel">☰</button>
+        </div>
+
+        <div class="panelBody" id="panelBody">
+          <!-- Project Info -->
+          <div class="block">
+            <div class="blockTitle">Project Info</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Project Name</label>
+                <input id="projectName" class="input" placeholder="e.g., SMDC Kitchen Repair" />
+              </div>
+              <div>
+                <label class="labelSm">Client</label>
+                <input id="clientName" class="input" placeholder="Client name" />
+              </div>
+              <div class="span2">
+                <label class="labelSm">Location</label>
+                <input id="projectLocation" class="input" placeholder="Project location" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Labor -->
+          <div class="block">
+            <div class="blockTitle">Labor</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Labor Mode</label>
+                <select id="laborMode" class="select">
+                  <option value="percent">Percent of (Materials+Accessories+Utilities)</option>
+                  <option value="unit">Per-Unit (use Labor rows in table)</option>
+                </select>
+              </div>
+              <div>
+                <label class="labelSm">Labor %</label>
+                <input id="laborPercent" class="input" type="number" min="0" step="0.01" placeholder="e.g., 20" />
+              </div>
+            </div>
+            <div class="muted small">
+              If Labor Mode is <strong>unit</strong>, add labor rows in the table (Category = Labor) with any custom unit (LM, SQM, day, etc.).
+            </div>
+          </div>
+
+          <!-- Logistics -->
+          <div class="block">
+            <div class="blockTitle">Logistics</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Distance (km)</label>
+                <input id="distanceKm" class="input" type="number" min="0" step="0.1" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Cost per km</label>
+                <input id="costPerKm" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Deliveries</label>
+                <input id="deliveries" class="input" type="number" min="1" step="1" value="1" />
+              </div>
+              <div>
+                <label class="labelSm">Toll Fees</label>
+                <input id="tollFees" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div class="span2">
+                <label class="labelSm">Helper Fee</label>
+                <input id="helperFee" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Overhead -->
+          <div class="block">
+            <div class="blockTitle">Monthly Overhead Allocation</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Rent</label>
+                <input id="ohRent" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Electricity</label>
+                <input id="ohElectric" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Admin Salaries</label>
+                <input id="ohAdmin" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Amortization</label>
+                <input id="ohAmort" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div class="span2">
+                <label class="labelSm">Misc Overhead</label>
+                <input id="ohMisc" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Productive Hours / Month</label>
+                <input id="ohHoursMonth" class="input" type="number" min="1" step="0.1" value="160" />
+              </div>
+              <div>
+                <label class="labelSm">Project Hours (manual)</label>
+                <input id="projectHours" class="input" type="number" min="0" step="0.1" value="0" />
+              </div>
+            </div>
+
+            <div class="miniKpis">
+              <div class="mini">
+                <div class="miniLabel">Overhead/hr</div>
+                <div class="miniValue" id="ohRate">₱ 0.00</div>
+              </div>
+              <div class="mini">
+                <div class="miniLabel">Project Overhead</div>
+                <div class="miniValue" id="ohAlloc">₱ 0.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contractor SOP -->
+          <div class="block">
+            <div class="blockTitle">Contractor SOP</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Mode</label>
+                <select id="contractorMode" class="select">
+                  <option value="none">None</option>
+                  <option value="percent">Percentage</option>
+                  <option value="fixed">Fixed Amount</option>
+                </select>
+              </div>
+              <div>
+                <label class="labelSm">Value</label>
+                <input id="contractorValue" class="input" type="number" min="0" step="0.01" placeholder="%" />
+              </div>
+            </div>
+            <div class="muted small">
+              Percentage is applied to <strong>Operational Cost</strong> (Direct + Logistics + Overhead).
+            </div>
+          </div>
+
+          <!-- Contingency + Markup -->
+          <div class="block">
+            <div class="blockTitle">Contingency & Markup</div>
+            <div class="grid2">
+              <div>
+                <label class="labelSm">Contingency %</label>
+                <input id="contingencyPct" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label class="labelSm">Markup %</label>
+                <input id="markupPct" class="input" type="number" min="0" step="0.01" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="block">
+            <div class="blockTitle">Cost Breakdown</div>
+            <div class="breakdown">
+              <div class="row"><span>Materials</span><span id="bdMaterials">₱ 0.00</span></div>
+              <div class="row"><span>Accessories</span><span id="bdAccessories">₱ 0.00</span></div>
+              <div class="row"><span>Utilities</span><span id="bdUtilities">₱ 0.00</span></div>
+              <div class="row"><span>Labor</span><span id="bdLabor">₱ 0.00</span></div>
+              <div class="row"><span>Logistics</span><span id="bdLogistics">₱ 0.00</span></div>
+              <div class="row"><span>Overhead Allocation</span><span id="bdOverhead">₱ 0.00</span></div>
+              <div class="row strong"><span>Operational Cost</span><span id="bdOperational">₱ 0.00</span></div>
+              <div class="row"><span>Contractor Share</span><span id="bdContractor">₱ 0.00</span></div>
+              <div class="row"><span>Contingency</span><span id="bdContingency">₱ 0.00</span></div>
+              <div class="row strong"><span>Cost Before Markup</span><span id="bdBase">₱ 0.00</span></div>
+              <div class="row"><span>Markup</span><span id="bdMarkup">₱ 0.00</span></div>
+              <div class="row strong"><span>Final Selling Price</span><span id="bdFinal">₱ 0.00</span></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="muted small">
+              Autosave is enabled. Projects are stored in your browser (localStorage).
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Sticky Bottom Bar -->
+  <div class="stickyTotal">
+    <div class="stickyLeft">
+      <span class="muted">Final Project Cost</span>
+      <span class="stickyValue" id="stickyFinal">₱ 0.00</span>
+    </div>
+    <div class="stickyRight">
+      <span class="pill" id="stickyProjectName">—</span>
+      <span class="pill" id="stickySaved">Saved</span>
+    </div>
+  </div>
+
+  <!-- Print Area (generated on demand) -->
+  <div id="printArea" class="printArea"></div>
+
+  <script src="js/library.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/calc.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

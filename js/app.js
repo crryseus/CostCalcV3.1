@@ -198,9 +198,19 @@ function onRowChange(rowId, el){
   }
 
   scheduleSave();
-  // Re-render just totals + row subtotal by re-rendering table (simpler + safe)
-  renderRows();
-  recalcAndRender();
+
+// Update only subtotal cell (no full table re-render)
+const row = state.project.rows.find(r => r.id === rowId);
+const tr = document.querySelector(`tr[data-id="${rowId}"]`);
+if(row && tr){
+  const subCell = tr.querySelector("td:nth-child(8)");
+  if(subCell){
+    subCell.innerHTML = "<strong>" + money(rowSubtotal(row)) + "</strong>";
+  }
+}
+
+// Recalculate totals only
+recalcAndRender();
 }
 
 function addRow(prefill = null){
@@ -594,5 +604,6 @@ function init(){
   // Set placeholder for contractor value
   $("contractorValue").placeholder = $("contractorMode").value === "percent" ? "%" : "₱ amount";
 }
+
 
 document.addEventListener("DOMContentLoaded", init);
